@@ -1,9 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class WeatherInfoItems extends StatelessWidget {
-  final time;
-  final data;
+  final String time;
+  final String data;
   const WeatherInfoItems({
     super.key,
     required this.time,
@@ -20,7 +19,7 @@ class WeatherInfoItems extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                '$time',
+                time,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

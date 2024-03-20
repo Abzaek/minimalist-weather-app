@@ -1,23 +1,62 @@
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:minimalist_weather_app/weather_forecast.dart';
+import 'dart:convert';
 
-class MyWeatherApp extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:minimalist_weather_app/additional_info_items.dart';
+import 'package:minimalist_weather_app/main_weather_info.dart';
+import 'package:minimalist_weather_app/weather_forecast.dart';
+import 'package:http/http.dart' as http;
+import 'secret_code.dart';
+import 'datas.dart';
+
+class MyWeatherApp extends StatefulWidget {
   const MyWeatherApp({super.key});
 
   @override
+  State<MyWeatherApp> createState() => _MyWeatherAppState();
+}
+
+class _MyWeatherAppState extends State<MyWeatherApp> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getInfo();
+  }
+
+  void getInfo() async {
+    try {
+      final res = await http.get(Uri.parse(
+          'http://api.openweathermap.org/data/2.5/forecast?q=$cityName&APPID=$apiKey'));
+      final weather = jsonDecode(res.body);
+      if (weather['cod'] != '200') {
+        throw 'Unable to retrieve data';
+      } else {
+        setState(() {
+          final lst = weather['list'];
+
+          for (int i = 0; i < 5; i++) {
+            String current = lst[i]['dt_txt'];
+            temp[i] = lst[i]['main']['temp'] - 273.15;
+            time[i] = current.substring(current.length - 9, current.length - 3);
+          }
+          cond = weather['list'][0]['weather'][0]['main'];
+          humidity = lst[0]['main']['humidity'];
+          windSpeed = lst[0]['wind']['speed'];
+          pressure = lst[0]['main']['pressure'];
+        });
+      }
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int result = 300;
-    String data = 'Rain';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weather App'),
         actions: [
-          IconButton(
-              onPressed: () {
-                print('refreshed');
-              },
-              icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: getInfo, icon: const Icon(Icons.refresh)),
         ],
         centerTitle: true,
       ),
@@ -26,45 +65,8 @@ class MyWeatherApp extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(25),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Card(
-                  elevation: 12,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            '$result F',
-                            style: const TextStyle(
-                              fontFamily: AutofillHints.addressCityAndState,
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          const Icon(Icons.cloud, size: 70),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            data,
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            MainWeatherInfoItem(
+                temprature: temp[0], condition: cond, icon: Icons.cloud),
             const SizedBox(
               height: 20,
             ),
@@ -78,15 +80,30 @@ class MyWeatherApp extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            const SingleChildScrollView(
+            SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  WeatherInfoItems(time: '02:00', data: '27 C'),
-                  WeatherInfoItems(time: '05:00', data: '38 C'),
-                  WeatherInfoItems(time: '08:00', data: '21 c'),
-                  WeatherInfoItems(time: '05:00', data: '38 C'),
-                  WeatherInfoItems(time: '08:00', data: '21 c'),
+                  WeatherInfoItems(
+                    time: time[0],
+                    data: '${(temp[0]).toStringAsFixed(2)} C',
+                  ),
+                  WeatherInfoItems(
+                    time: time[1],
+                    data: '${(temp[1]).toStringAsFixed(2)} C',
+                  ),
+                  WeatherInfoItems(
+                    time: time[2],
+                    data: '${(temp[2]).toStringAsFixed(2)} C',
+                  ),
+                  WeatherInfoItems(
+                    time: time[3],
+                    data: '${(temp[3]).toStringAsFixed(2)} C',
+                  ),
+                  WeatherInfoItems(
+                    time: time[4],
+                    data: '${(temp[4]).toStringAsFixed(2)} C',
+                  ),
                 ],
               ),
             ),
@@ -103,99 +120,23 @@ class MyWeatherApp extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Column(
-                  children: [
-                    Icon(
-                      Icons.water_drop,
-                      size: 32,
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      'Humidity',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w100,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      '90',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w200,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
+                AdditionalInfoItems(
+                    label: 'Humidity', value: humidity, icon: Icons.water_drop),
+                const SizedBox(
                   width: 64,
                 ),
-                Column(
-                  children: [
-                    Icon(
-                      Icons.water_outlined,
-                      size: 32,
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      'Wind Speed',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w100,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 6,
-                    ),
-                    Text(
-                      '190',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w200,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
+                AdditionalInfoItems(
+                    label: 'Wind Speed', value: windSpeed, icon: Icons.air),
+                const SizedBox(
                   width: 64,
                 ),
-                Column(
-                  children: [
-                    Icon(
-                      Icons.cloud_circle,
-                      size: 32,
-                    ),
-                    SizedBox(
-                      height: 6,
-                    ),
-                    Text(
-                      'Pressure',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w100,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 6,
-                    ),
-                    Text(
-                      '1090',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w200,
-                      ),
-                    ),
-                  ],
-                ),
+                AdditionalInfoItems(
+                    label: 'Pressure',
+                    value: pressure,
+                    icon: Icons.beach_access),
               ],
             ),
           ],
