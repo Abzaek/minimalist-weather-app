@@ -25,7 +25,7 @@ To run the app locally, follow these steps:
 
 1. Clone this repository to your local machine.
 2. Ensure you have Flutter installed. If not, follow the [installation instructions](https://flutter.dev/docs/get-started/install) on the Flutter website.
-3. Set up your OpenWeather API key by signing up on the [OpenWeather website](https://openweathermap.org/api) and replacing the variable apiKey(inside the secret_codes.dart of the lib folder) code with your own.
+3. Set up your OpenWeather API key by signing up on the [OpenWeather website](https://openweathermap.org/api) and replacing the variable apiKey(inside the secret_codes.dart file of the lib folder) code with your own.
 4. Run `flutter pub get` to install dependencies.
 5. Run `flutter run` to launch the app on your device or emulator.
 
